@@ -1,0 +1,31 @@
+# Lessons
+
+## User Specified Lessons
+- You have a python venv in ./venv. Use it.
+- Include info useful for debugging in the program output.
+- Read the file before you try to edit it.
+- Due to Cursor's limit, when you use `git` and `gh` and need to submit a multiline commit message, first write the message in a file, and then use `git commit -F <filename>` or similar command to commit. And then remove the file. Include "[Cursor] " in the commit message and PR title.
+
+## Cursor learned
+- For search results, ensure proper handling of different character encodings (UTF-8) for international queries
+- Add debug information to stderr while keeping the main output clean in stdout for better pipeline integration
+- When using seaborn styles in matplotlib, use 'seaborn-v0_8' instead of 'seaborn' as the style name due to recent seaborn version changes
+- Use 'gpt-4o' as the model name for OpenAI's GPT-4 with vision capabilities
+
+## Additional Lessons (this project)
+- Frontend hardcodes API base in multiple files. When documenting, list all locations to change for consistency.
+- Backend has no npm start script; instruct `node index.js` explicitly.
+
+# Scratchpad
+
+Task: Create comprehensive READMEs for Frontend, backend, and root with setup/run instructions and tech stack.
+
+Todos
+- [x] Review codebase to understand features and dependencies
+- [x] Write Frontend README with requirements, setup, tech stack, routes
+- [x] Write backend README with env vars, routes, models
+- [x] Write root README with end-to-end setup and troubleshooting
+- [x] Save lessons about API base duplication and missing start script
+
+Next
+- Keep READMEs updated if env/config changes (e.g., unify API base via env in the code later)
