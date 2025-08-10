@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
+import api from "@/lib/api";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -20,8 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock } from "lucide-react";
 
-const API_BASE =
-  "https://5bec41ab-8071-4f15-8f8e-863807d07b11-00-2a0a15julymht.janeway.replit.dev";
+// use shared axios instance from lib/api
 
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -46,9 +45,7 @@ export default function Login() {
         email: values.email.trim().toLowerCase(),
         password: values.password,
       };
-      const res = await axios.post(`${API_BASE}/api/auth/login`, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
+      const res = await api.post(`/api/auth/login`, payload);
       return res.data;
     },
     onSuccess: (data) => {

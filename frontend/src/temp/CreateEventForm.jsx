@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import api from '@/lib/api';
 
 const CreateEventForm = ({ onSuccess, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -23,17 +23,7 @@ const CreateEventForm = ({ onSuccess, onCancel }) => {
     e.preventDefault();
 
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.post(
-        'https://5bec41ab-8071-4f15-8f8e-863807d07b11-00-2a0a15julymht.janeway.replit.dev/api/events/create',
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const res = await api.post('/api/events/create', formData);
 
       toast.success('✅ Event created!');
       onSuccess(); // Refresh events list or close form

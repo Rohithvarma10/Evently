@@ -1,0 +1,41 @@
+# Lessons
+
+## User Specified Lessons
+- You have a python venv in ./venv. Use it.
+- Include info useful for debugging in the program output.
+- Read the file before you try to edit it.
+- For multi-line git messages in Cursor: write to a file, commit with -F, prefix with "[Cursor] ".
+
+## Cursor learned
+- For search results, ensure proper UTF‑8 handling
+- Add debug info to stderr; keep stdout clean
+- Use 'seaborn-v0_8' in matplotlib
+- Use 'gpt-4o' for OpenAI w/ vision
+
+## Project-specific Lessons
+- Frontend default `API_BASE` pointed to a stale Replit URL; for local dev we should use `http://localhost:3000`.
+- Several temp pages define their own `API_BASE` and must be kept in sync or refactored to use `src/lib/api.js`.
+
+# Scratchpad
+
+## Task: Fix "Network Error" on account creation
+
+- Goal: Ensure registration hits the local backend and not a dead external URL.
+
+### Plan
+- [x] Update `frontend/src/lib/api.js` to `http://localhost:3000`.
+- [x] Update temp pages with hardcoded `API_BASE`.
+- [x] Refactor temp pages to import shared `api` from `src/lib/api.js` instead of per-page axios.
+- [x] Ensure backend `.env` exists with `MONGO_URI`, `JWT_SECRET`, `PORT` (note: file may be git-ignored; run locally).
+- [ ] Install and start backend; verify health endpoint.
+- [ ] Try a test registration and booking, then verify `/api/bookings/me` returns data.
+
+### Notes
+- CORS on backend is permissive for dev. JWT via Authorization header; shared axios adds the token.
+- Start Mongo locally (macOS): `brew services start mongodb-community` or Docker `docker run -d -p 27017:27017 mongo:7`.
+- Backend env to create locally in `backend/.env`:
+  - `MONGO_URI=mongodb://127.0.0.1:27017/evently`
+  - `JWT_SECRET=<your-secret>`
+  - `PORT=3000`
+
+
