@@ -1,7 +1,6 @@
 import axios from "axios";
 
-export const API_BASE =
-  "https://5bec41ab-8071-4f15-8f8e-863807d07b11-00-2a0a15julymht.janeway.replit.dev";
+export const API_BASE = "http://localhost:3000";
 
 // Create an axios instance
 const api = axios.create({

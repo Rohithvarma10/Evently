@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+import api from '@/lib/api';
 
 // Zod schema
 const schema = z.object({
@@ -36,21 +36,13 @@ const EditEvent = ({ event, onClose }) => {
   });
 
   const { mutate, isLoading, isError, isSuccess, error } = useMutation({
-    mutationFn: async (updatedData) => {
-      const res = await axios.put(
-        `https://5bec41ab-8071-4f15-8f8e-863807d07b11-00-2a0a15julymht.janeway.replit.dev/api/events/${event._id}`,
-        {
+    mutationFn: async (updatedData) =>
+      (
+        await api.put(`/api/events/${event._id}`, {
           ...updatedData,
           date: new Date(updatedData.date).toISOString(),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      return res.data;
-    },
+        })
+      ).data,
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-events']);
       onClose();

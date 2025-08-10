@@ -1,7 +1,7 @@
 // src/temp/eventdetails.jsx
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -29,15 +29,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-const API_BASE =
-  "https://5bec41ab-8071-4f15-8f8e-863807d07b11-00-2a0a15julymht.janeway.replit.dev";
-
-const api = axios.create({ baseURL: API_BASE });
-api.interceptors.request.use((config) => {
-  const t = localStorage.getItem("token");
-  if (t) config.headers.Authorization = `Bearer ${t}`;
-  return config;
-});
+// use shared axios instance from lib/api
 
 export default function EventDetail() {
   const { id } = useParams();

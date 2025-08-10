@@ -10,8 +10,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, MapPin, Image as ImageIcon } from "lucide-react";
 
-const API_BASE =
-  "https://5bec41ab-8071-4f15-8f8e-863807d07b11-00-2a0a15julymht.janeway.replit.dev";
+const API_BASE = "http://localhost:3000";
 
 export default function MyBookings() {
   const navigate = useNavigate();

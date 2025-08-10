@@ -2,7 +2,7 @@
 import React, { useMemo, useState, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import axios from "axios";
+import api from "@/lib/api";
 import { toast } from "sonner";
 
 import CreateEventForm from "./CreateEventForm";
@@ -11,15 +11,7 @@ import AdminHeader from "../components/AdminHeader";
 
 import { MapPin, Users, CalendarClock, Ticket } from "lucide-react";
 
-const API_BASE =
-  "https://5bec41ab-8071-4f15-8f8e-863807d07b11-00-2a0a15julymht.janeway.replit.dev";
-
-const api = axios.create({ baseURL: API_BASE });
-api.interceptors.request.use((config) => {
-  const t = localStorage.getItem("token");
-  if (t) config.headers.Authorization = `Bearer ${t}`;
-  return config;
-});
+// use shared axios instance from lib/api
 
 const isValidObjectId = (id) => typeof id === "string" && /^[a-fA-F\d]{24}$/.test(id);
 const niceDate = (d) =>
