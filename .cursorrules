@@ -4,7 +4,7 @@
 - You have a python venv in ./venv. Use it.
 - Include info useful for debugging in the program output.
 - Read the file before you try to edit it.
-- For multi-line git messages in Cursor: write to a file, commit with -F, prefix with "[Cursor] ".
+- For multi-line git messages: write to a file and commit with -F. Do not include the tool name in commit messages.
 
 ## Cursor learned
 - For search results, ensure proper UTF‑8 handling
