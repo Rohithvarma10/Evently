@@ -63,6 +63,10 @@ A full-stack app for discovering events and booking tickets, with an admin dashb
 - Register a user via `/register`
 - To use the admin dashboard, promote a user to `admin` in MongoDB:
 
+- Test Admin credentials -
+  Email: Test20@example.com
+  Password:testpass123
+
   ```js
   use evently;
   db.users.updateOne({ email: "admin@example.com" }, { $set: { role: "admin" } });
