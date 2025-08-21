@@ -8,6 +8,87 @@ import api from "@/lib/api";
 import Header from "../components/header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Ticket } from "lucide-react";
+
+// ---- Single event card (with one badge on the image) ----
+function EventCard({ event, onOpen }) {
+  const { data: availability, isLoading: loadingAvail } = useQuery({
+    queryKey: ["availability", event._id],
+    queryFn: async () =>
+      (await api.get(`/api/events/${event._id}/availability`)).data,
+    retry: 1,
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+  });
+
+  const seatsLeft = Number.isFinite(availability?.seatsLeft)
+    ? availability.seatsLeft
+    : null;
+  const soldOut = seatsLeft === 0;
+
+  const dateStr = event.date
+    ? new Date(event.date).toDateString()
+    : "To be announced";
+  const locationStr = event.location || "To be announced";
+
+  return (
+    <Card className="overflow-hidden p-0 transition hover:shadow-lg">
+      {/* Image + single badge */}
+      <div className="relative">
+        {event.image ? (
+          <img
+            src={event.image}
+            alt={event.title}
+            className="block h-48 w-full object-cover"
+          />
+        ) : (
+          <div className="h-48 w-full bg-gray-200" />
+        )}
+
+        {!loadingAvail && seatsLeft !== null && (
+          <div className="absolute right-3 top-3">
+            {soldOut ? (
+              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium bg-rose-600 text-white">
+                <Ticket className="h-3.5 w-3.5" />
+                Sold out
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <Ticket className="h-3.5 w-3.5" />
+                {seatsLeft} left
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="px-4 pb-4 pt-1">
+        <h3 className="-mt-1 text-center text-3xl sm:text-4xl font-extrabold font-sans text-black leading-tight">
+          {event.title}
+        </h3>
+
+        <div className="mt-2 text-center text-base">
+          <span className="font-semibold text-indigo-700">📅 Date:</span>{" "}
+          <span className="text-gray-800">{dateStr}</span>
+        </div>
+
+        <div className="mt-1 text-center text-base">
+          <span className="font-semibold text-indigo-700">📍 Location:</span>{" "}
+          <span className="text-gray-800">{locationStr}</span>
+        </div>
+
+        <Button
+          className="mt-3 w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:text-gray-600"
+          onClick={onOpen}
+          disabled={soldOut}
+        >
+          {soldOut ? "Sold Out" : "View Details"}
+        </Button>
+      </div>
+    </Card>
+  );
+}
 
 export default function Events() {
   const navigate = useNavigate();
@@ -84,54 +165,13 @@ export default function Events() {
         {/* Events grid */}
         {!isLoading && !isError && Array.isArray(data) && data.length > 0 && (
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {data.map((event) => {
-              const dateStr = event.date
-                ? new Date(event.date).toDateString()
-                : "To be announced";
-              const locationStr = event.location || "To be announced";
-
-              return (
-                <Card
-                  key={event._id}
-                  className="overflow-hidden p-0 transition hover:shadow-lg"
-                >
-                  {/* Image */}
-                  {event.image ? (
-                    <img
-                      src={event.image}
-                      alt={event.title}
-                      className="block h-48 w-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-48 w-full bg-gray-200" />
-                  )}
-
-                  {/* CONTENT — no top padding, tiny negative margin on title */}
-                  <div className="px-4 pb-4 pt-1">
-                    <h3 className="-mt-1 text-center text-3xl sm:text-4xl font-extrabold font-sans text-black leading-tight">
-                      {event.title}
-                    </h3>
-
-                    <div className="mt-2 text-center text-base">
-                      <span className="font-semibold text-indigo-700">📅 Date:</span>{" "}
-                      <span className="text-gray-800">{dateStr}</span>
-                    </div>
-
-                    <div className="mt-1 text-center text-base">
-                      <span className="font-semibold text-indigo-700">📍 Location:</span>{" "}
-                      <span className="text-gray-800">{locationStr}</span>
-                    </div>
-
-                    <Button
-                      className="mt-3 w-full bg-indigo-600 hover:bg-indigo-700"
-                      onClick={() => navigate(`/events/${event._id}`)}
-                    >
-                      View Details
-                    </Button>
-                  </div>
-                </Card>
-              );
-            })}
+            {data.map((evt) => (
+              <EventCard
+                key={evt._id}
+                event={evt}
+                onOpen={() => navigate(`/events/${evt._id}`)}
+              />
+            ))}
           </div>
         )}
 

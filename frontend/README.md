@@ -30,16 +30,15 @@ npm install
 
 2) Point the app to your backend API
 
-By default the app targets a Replit URL. For local development, change it to your backend origin (e.g. `http://localhost:3000`).
+By default the app now targets your local backend at `http://localhost:3000` via the shared axios instance in `src/lib/api.js`. Avoid creating new axios instances in pages.
 
 - Primary location:
   - `src/lib/api.js` → update `API_BASE`
-- Pages that also define their own `API_BASE` (keep these in sync or refactor to use `src/lib/api.js`):
-  - `src/temp/login.jsx`
-  - `src/temp/eventdetails.jsx`
-  - `src/temp/AdminEvents.jsx`
-  - `src/temp/AdminEventBookings.jsx`
-  - `src/temp/MyBookings.jsx`
+- Temporary pages were refactored to use the shared client. If you add new pages, import `api` from `src/lib/api.js`:
+  ```js
+  import api from '@/lib/api';
+  const res = await api.get('/api/your-endpoint');
+  ```
 
 Example for local dev:
 

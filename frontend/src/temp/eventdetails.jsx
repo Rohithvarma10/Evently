@@ -29,19 +29,28 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-// use shared axios instance from lib/api
-
 export default function EventDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  // 1) Event details
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["event", id],
-    queryFn: async () => {
-      const res = await api.get(`/api/events/${id}`);
-      return res.data;
-    },
+    queryFn: async () => (await api.get(`/api/events/${id}`)).data,
     retry: 1,
+  });
+
+  // 2) Live availability
+  const {
+    data: availability,
+    isLoading: loadingAvail,
+    isError: availError,
+  } = useQuery({
+    queryKey: ["availability", id],
+    queryFn: async () => (await api.get(`/api/events/${id}/availability`)).data,
+    retry: 1,
+    staleTime: 0,
+    refetchOnWindowFocus: false,
   });
 
   if (isError) {
@@ -98,22 +107,39 @@ export default function EventDetail() {
   const event = data || {};
   const dateObj = event.date ? new Date(event.date) : null;
 
-  const capacity = typeof event.capacity === "number" ? event.capacity : undefined;
-  const booked = typeof event.booked === "number" ? event.booked : undefined;
-  const seatsLeft =
-    typeof capacity === "number" && typeof booked === "number"
-      ? Math.max(capacity - booked, 0)
-      : typeof event.seatsAvailable === "number"
-      ? event.seatsAvailable
+  // prefer availability API
+  const capacity =
+    Number.isFinite(availability?.capacity)
+      ? availability.capacity
+      : Number.isFinite(event.capacity)
+      ? event.capacity
       : undefined;
 
-  const soldOut = typeof seatsLeft === "number" && seatsLeft <= 0;
+  const booked =
+    Number.isFinite(availability?.booked)
+      ? availability.booked
+      : Number.isFinite(event.booked)
+      ? event.booked
+      : undefined;
+
+  const seatsLeft =
+    Number.isFinite(availability?.seatsLeft)
+      ? availability.seatsLeft
+      : Number.isFinite(capacity) && Number.isFinite(booked)
+      ? Math.max(capacity - booked, 0)
+      : undefined;
+
+  const soldOut = Number.isFinite(seatsLeft) && seatsLeft <= 0;
 
   const share = async () => {
     const url = window.location.href;
     try {
       if (navigator.share) {
-        await navigator.share({ title: event.title || "Event", text: "Check out this event", url });
+        await navigator.share({
+          title: event.title || "Event",
+          text: "Check out this event",
+          url,
+        });
       } else {
         await navigator.clipboard.writeText(url);
         toast.success("Link copied to clipboard");
@@ -142,12 +168,15 @@ export default function EventDetail() {
         <Card className="overflow-hidden">
           <div className="relative">
             {event.image ? (
-              <img src={event.image} alt={event.title} className="h-72 w-full object-cover" />
+              <img
+                src={event.image}
+                alt={event.title}
+                className="h-72 w-full object-cover"
+              />
             ) : (
               <div className="h-72 w-full bg-gray-200" />
             )}
 
-            {/* SOLD OUT ribbon on image */}
             {soldOut && (
               <div className="absolute left-3 top-3 rounded-md bg-rose-600/90 px-2.5 py-1 text-xs font-semibold text-white shadow">
                 Sold Out
@@ -164,30 +193,45 @@ export default function EventDetail() {
                 {dateObj && (
                   <CardDescription className="mt-1 flex items-center gap-2 text-gray-600">
                     <Calendar className="h-4 w-4" />
-                    {dateObj.toLocaleDateString()} <span className="mx-1">•</span>
+                    {dateObj.toLocaleDateString()}{" "}
+                    <span className="mx-1">•</span>
                     <Clock className="h-4 w-4" />
-                    {dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    {dateObj.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </CardDescription>
                 )}
               </div>
 
               <div className="flex items-center gap-2">
-                {category && pill(<><Tag className="h-3.5 w-3.5" />{category}</>, "secondary")}
-                {typeof seatsLeft === "number" &&
-                  (soldOut
-                    ? (
-                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium bg-rose-600 text-white">
-                        <Ticket className="h-3.5 w-3.5" />
-                        Sold out
-                      </span>
-                    )
-                    : pill(<><Ticket className="h-3.5 w-3.5" />{seatsLeft} left</>, "primary"))}
+                {category &&
+                  pill(
+                    <>
+                      <Tag className="h-3.5 w-3.5" />
+                      {category}
+                    </>,
+                    "secondary"
+                  )}
+                {!loadingAvail && Number.isFinite(seatsLeft) && (soldOut ? (
+                  <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium bg-rose-600 text-white">
+                    <Ticket className="h-3.5 w-3.5" />
+                    Sold out
+                  </span>
+                ) : (
+                  pill(
+                    <>
+                      <Ticket className="h-3.5 w-3.5" />
+                      {seatsLeft} left
+                    </>,
+                    "primary"
+                  )
+                ))}
               </div>
             </div>
           </CardHeader>
 
           <CardContent className="space-y-5">
-            {/* Tickets unavailable alert */}
             {soldOut && (
               <div className="flex items-start gap-3 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-rose-700">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -209,18 +253,34 @@ export default function EventDetail() {
                   </div>
                 </div>
               )}
-              {typeof capacity === "number" && (
+
+              {/* Availability */}
+              {Number.isFinite(seatsLeft) ? (
                 <div className="flex items-start gap-2 text-gray-700">
                   <Users className="mt-0.5 h-4 w-4 text-gray-500" />
                   <div>
-                    <p className="font-medium">Capacity</p>
-                    <p>
-                      {capacity.toLocaleString()}
-                      {typeof booked === "number" ? ` (booked ${booked})` : ""}
-                    </p>
+                    <p className="font-medium">Availability</p>
+                    <p>{soldOut ? "Sold out" : `${seatsLeft} left`}</p>
+                    {/* Optional caption to still show total */}
+                    {Number.isFinite(capacity) && (
+                      <p className="text-xs text-gray-500">
+                        Total capacity: {capacity}
+                      </p>
+                    )}
                   </div>
                 </div>
+              ) : (
+                Number.isFinite(capacity) && (
+                  <div className="flex items-start gap-2 text-gray-700">
+                    <Users className="mt-0.5 h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="font-medium">Capacity</p>
+                      <p>{capacity.toLocaleString()}</p>
+                    </div>
+                  </div>
+                )
               )}
+
               {event.organizer && (
                 <div className="flex items-start gap-2 text-gray-700">
                   <UserIcon className="mt-0.5 h-4 w-4 text-gray-500" />
@@ -230,6 +290,7 @@ export default function EventDetail() {
                   </div>
                 </div>
               )}
+
               {event.price != null && (
                 <div className="flex items-start gap-2 text-gray-700">
                   <DollarSign className="mt-0.5 h-4 w-4 text-gray-500" />
@@ -246,7 +307,6 @@ export default function EventDetail() {
               )}
             </div>
 
-            {/* Tags */}
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {tags.map((t, i) => (
@@ -260,7 +320,6 @@ export default function EventDetail() {
               </div>
             )}
 
-            {/* Description */}
             {event.description && (
               <p className="leading-relaxed text-gray-800 whitespace-pre-line">
                 {event.description}
@@ -272,7 +331,7 @@ export default function EventDetail() {
             <Button
               className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:text-gray-600 disabled:cursor-not-allowed"
               onClick={() => navigate(`/book/${event._id}`)}
-              disabled={soldOut}
+              disabled={soldOut || availError}
             >
               {soldOut ? "Sold Out" : "Book this Event"}
             </Button>
